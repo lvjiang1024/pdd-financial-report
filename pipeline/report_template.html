@@ -1,0 +1,730 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>PDD Holdings (拼多多) 财务分析报告</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+<style>
+:root {
+  --surface-1:      #fcfcfb;
+  --page-plane:     #f9f9f7;
+  --text-primary:   #0b0b0b;
+  --text-secondary: #52514e;
+  --text-muted:     #898781;
+  --gridline:       #e1e0d9;
+  --baseline:       #c3c2b7;
+  --border:         rgba(11,11,11,0.10);
+  --series-1: #2a78d6; /* blue */
+  --series-2: #1baf7a; /* aqua */
+  --series-3: #eda100; /* yellow */
+  --series-4: #008300; /* green */
+  --series-5: #4a3aa7; /* violet */
+  --series-6: #e34948; /* red */
+  --series-7: #e87ba4; /* magenta */
+  --series-8: #eb6834; /* orange */
+  --good: #0ca30c;
+  --critical: #d03b3b;
+  --card-radius: 12px;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --surface-1:      #1a1a19;
+    --page-plane:     #0d0d0d;
+    --text-primary:   #ffffff;
+    --text-secondary: #c3c2b7;
+    --text-muted:     #898781;
+    --gridline:       #2c2c2a;
+    --baseline:       #383835;
+    --border:         rgba(255,255,255,0.10);
+    --series-1: #3987e5;
+    --series-2: #199e70;
+    --series-3: #c98500;
+    --series-4: #008300;
+    --series-5: #9085e9;
+    --series-6: #e66767;
+    --series-7: #d55181;
+    --series-8: #d95926;
+    --good: #0ca30c;
+    --critical: #e66767;
+  }
+}
+:root[data-theme="dark"] {
+  --surface-1:      #1a1a19;
+  --page-plane:     #0d0d0d;
+  --text-primary:   #ffffff;
+  --text-secondary: #c3c2b7;
+  --text-muted:     #898781;
+  --gridline:       #2c2c2a;
+  --baseline:       #383835;
+  --border:         rgba(255,255,255,0.10);
+  --series-1: #3987e5;
+  --series-2: #199e70;
+  --series-3: #c98500;
+  --series-4: #008300;
+  --series-5: #9085e9;
+  --series-6: #e66767;
+  --series-7: #d55181;
+  --series-8: #d95926;
+}
+:root[data-theme="light"] {
+  --surface-1:      #fcfcfb;
+  --page-plane:     #f9f9f7;
+  --text-primary:   #0b0b0b;
+  --text-secondary: #52514e;
+  --text-muted:     #898781;
+  --gridline:       #e1e0d9;
+  --baseline:       #c3c2b7;
+  --border:         rgba(11,11,11,0.10);
+  --series-1: #2a78d6;
+  --series-2: #1baf7a;
+  --series-3: #eda100;
+  --series-4: #008300;
+  --series-5: #4a3aa7;
+  --series-6: #e34948;
+  --series-7: #e87ba4;
+  --series-8: #eb6834;
+}
+
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+  background: var(--page-plane);
+  color: var(--text-primary);
+}
+.wrap { max-width: 1240px; margin: 0 auto; padding: 24px 20px 80px; }
+
+header.hero {
+  padding: 28px 0 20px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 20px;
+}
+header.hero h1 { font-size: 26px; margin: 0 0 6px; }
+header.hero .sub { color: var(--text-secondary); font-size: 14px; line-height: 1.6; }
+header.hero .tickers { display:flex; gap:10px; margin-top: 10px; flex-wrap: wrap; }
+.ticker-chip {
+  font-size: 12px; padding: 4px 10px; border-radius: 999px;
+  background: var(--surface-1); border: 1px solid var(--border); color: var(--text-secondary);
+}
+
+.nav {
+  display: flex; gap: 6px; flex-wrap: wrap;
+  position: sticky; top: 0; z-index: 10;
+  background: var(--page-plane);
+  padding: 10px 0; margin-bottom: 18px;
+  border-bottom: 1px solid var(--border);
+}
+.nav button {
+  font-family: inherit; font-size: 13.5px; font-weight: 500;
+  padding: 8px 14px; border-radius: 999px; border: 1px solid var(--border);
+  background: var(--surface-1); color: var(--text-secondary); cursor: pointer;
+  transition: all .15s ease;
+}
+.nav button:hover { color: var(--text-primary); }
+.nav button.active { background: var(--series-1); color: #fff; border-color: var(--series-1); }
+
+.section { display: none; }
+.section.active { display: block; }
+
+.grid { display: grid; gap: 16px; }
+.grid-2 { grid-template-columns: repeat(2, 1fr); }
+.grid-3 { grid-template-columns: repeat(3, 1fr); }
+.grid-4 { grid-template-columns: repeat(4, 1fr); }
+@media (max-width: 900px) {
+  .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr; }
+}
+
+.card {
+  background: var(--surface-1);
+  border: 1px solid var(--border);
+  border-radius: var(--card-radius);
+  padding: 18px;
+}
+.card h3 { margin: 0 0 4px; font-size: 14.5px; font-weight: 600; }
+.card .hint { font-size: 12px; color: var(--text-muted); margin-bottom: 10px; }
+.card canvas { max-width: 100%; }
+.chart-box { position: relative; width: 100%; height: 260px; }
+.chart-box.tall { height: 280px; }
+.chart-box.short { height: 240px; }
+.chart-box canvas { position: absolute; top: 0; left: 0; width: 100% !important; height: 100% !important; }
+
+.stat-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 18px; }
+@media (max-width: 900px) { .stat-row { grid-template-columns: repeat(2, 1fr); } }
+.stat-tile {
+  background: var(--surface-1); border: 1px solid var(--border); border-radius: var(--card-radius);
+  padding: 16px 18px;
+}
+.stat-tile .label { font-size: 12px; color: var(--text-muted); margin-bottom: 6px; }
+.stat-tile .value { font-size: 24px; font-weight: 700; }
+.stat-tile .delta { font-size: 12.5px; margin-top: 4px; }
+.stat-tile .delta.up { color: var(--good); }
+.stat-tile .delta.down { color: var(--critical); }
+
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+th, td { padding: 7px 10px; text-align: right; border-bottom: 1px solid var(--gridline); white-space: nowrap; }
+th:first-child, td:first-child { text-align: left; position: sticky; left: 0; background: var(--surface-1); }
+th { color: var(--text-muted); font-weight: 600; font-size: 12px; }
+td.est, span.tag { font-size: 10px; padding: 1px 6px; border-radius: 6px; background: var(--gridline); color: var(--text-muted); margin-left: 4px;}
+.table-scroll { overflow-x: auto; border: 1px solid var(--border); border-radius: var(--card-radius); }
+.table-scroll table { min-width: 900px; }
+
+/* management timeline */
+.mgmt-layout { display: grid; grid-template-columns: 160px 1fr; gap: 20px; }
+@media (max-width: 800px) { .mgmt-layout { grid-template-columns: 1fr; } }
+.year-nav { display: flex; flex-direction: column; gap: 4px; position: sticky; top: 60px; align-self: start; }
+.year-nav button {
+  text-align: left; font-family: inherit; font-size: 13px; padding: 7px 10px; border-radius: 8px;
+  border: none; background: transparent; color: var(--text-secondary); cursor: pointer;
+}
+.year-nav button:hover { background: var(--surface-1); }
+.year-nav button.active { background: var(--series-1); color: #fff; }
+.q-card {
+  background: var(--surface-1); border: 1px solid var(--border); border-radius: var(--card-radius);
+  padding: 16px 18px; margin-bottom: 14px;
+}
+.q-card h4 { margin: 0 0 10px; font-size: 15px; }
+.q-card .bullets { font-size: 13px; color: var(--text-secondary); margin: 0 0 10px; padding-left: 18px; line-height:1.6;}
+.q-card .quote { font-size: 13px; border-left: 3px solid var(--series-1); padding: 6px 0 6px 12px; margin: 8px 0; color: var(--text-primary);}
+.q-card .quote .attr { display:block; font-size: 11.5px; color: var(--text-muted); margin-top:4px; }
+.search-row { display:flex; gap:10px; margin-bottom: 16px; flex-wrap: wrap; }
+.search-row input {
+  flex: 1; min-width: 200px; padding: 8px 12px; border-radius: 8px; border: 1px solid var(--border);
+  background: var(--surface-1); color: var(--text-primary); font-family: inherit; font-size: 13px;
+}
+mark { background: var(--series-3); color: #0b0b0b; border-radius:3px; padding:0 2px;}
+
+.footnote { font-size: 12px; color: var(--text-muted); margin-top: 30px; line-height:1.7; }
+.legend-note { font-size:11.5px; color:var(--text-muted); margin-top:6px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="hero">
+  <h1>PDD Holdings Inc. (拼多多 / Temu 母公司) 财务分析报告</h1>
+  <div class="sub">
+    数据来源：公司向美国证券交易委员会 (SEC) 提交的 6-K 未审计季度财报公告（2018年第二季度 – 2026年第一季度，共 32 个季度）。
+    覆盖公司自 2018 年 7 月纳斯达克上市以来的完整经营历史。金额单位：人民币百万元（另有标注除外）。
+  </div>
+  <div class="tickers">
+    <span class="ticker-chip">NASDAQ: PDD</span>
+    <span class="ticker-chip">报告期：2018 Q2 – 2026 Q1</span>
+    <span class="ticker-chip">数据源：SEC EDGAR CIK 0001737806</span>
+  </div>
+</header>
+
+<nav class="nav">
+  <button class="active" onclick="show('overview', event)">📈 总览</button>
+  <button onclick="show('revenue', event)">📊 收入结构</button>
+  <button onclick="show('profit', event)">💰 利润分析</button>
+  <button onclick="show('cash', event)">🏦 现金与资产负债</button>
+  <button onclick="show('returns', event)">💎 股东回报与效率</button>
+  <button onclick="show('annual', event)">📅 年度汇总</button>
+  <button onclick="show('table', event)">📋 季度明细表</button>
+  <button onclick="show('mgmt', event)">💬 管理层观点</button>
+</nav>
+
+<!-- ============ OVERVIEW ============ -->
+<section class="section active" id="sec-overview">
+  <div class="stat-row" id="overview-stats"></div>
+  <div class="grid grid-2">
+    <div class="card"><h3>季度营业收入与净利润趋势</h3><div class="hint">人民币百万元；GAAP 口径</div><div class="chart-box"><canvas id="chart-ov-rev"></canvas></div></div>
+    <div class="card"><h3>季度营收同比增速</h3><div class="hint">%</div><div class="chart-box"><canvas id="chart-ov-yoy"></canvas></div></div>
+    <div class="card"><h3>利润率走势</h3><div class="hint">毛利率 / 营业利润率 / 净利率，%</div><div class="chart-box"><canvas id="chart-ov-margin"></canvas></div></div>
+    <div class="card"><h3>GAAP vs Non-GAAP 净利润</h3><div class="hint">人民币百万元</div><div class="chart-box"><canvas id="chart-ov-gaap"></canvas></div></div>
+  </div>
+</section>
+
+<!-- ============ REVENUE MIX ============ -->
+<section class="section" id="sec-revenue">
+  <div class="grid grid-2">
+    <div class="card"><h3>收入结构：在线营销服务 vs 交易服务</h3><div class="hint">人民币百万元，堆叠柱状图</div><div class="chart-box tall"><canvas id="chart-rev-stack"></canvas></div></div>
+    <div class="card"><h3>收入结构占比</h3><div class="hint">% of Total Revenue</div><div class="chart-box tall"><canvas id="chart-rev-share"></canvas></div></div>
+  </div>
+  <div class="card" style="margin-top:16px;">
+    <h3>收入引擎切换：交易服务（含 Temu 跨境电商）崛起</h3>
+    <div class="hint">2020年起交易服务收入占比持续攀升，反映跨境电商 Temu 业务及自营/半托管模式对佣金收入结构的重塑</div>
+    <div class="chart-box short"><canvas id="chart-rev-mix-line"></canvas></div>
+  </div>
+</section>
+
+<!-- ============ PROFIT ============ -->
+<section class="section" id="sec-profit">
+  <div class="grid grid-2">
+    <div class="card"><h3>营业利润：GAAP vs Non-GAAP</h3><div class="hint">人民币百万元</div><div class="chart-box"><canvas id="chart-profit-op"></canvas></div></div>
+    <div class="card"><h3>归母净利润：GAAP vs Non-GAAP</h3><div class="hint">人民币百万元</div><div class="chart-box"><canvas id="chart-profit-net"></canvas></div></div>
+    <div class="card"><h3>费用结构（销售/管理/研发）</h3><div class="hint">人民币百万元，占收入比例见提示框</div><div class="chart-box"><canvas id="chart-profit-opex"></canvas></div></div>
+    <div class="card"><h3>稀释每股 ADS 收益</h3><div class="hint">人民币元，GAAP vs Non-GAAP</div><div class="chart-box"><canvas id="chart-profit-eps"></canvas></div></div>
+  </div>
+</section>
+
+<!-- ============ CASH & BALANCE SHEET ============ -->
+<section class="section" id="sec-cash">
+  <div class="grid grid-2">
+    <div class="card"><h3>经营活动现金流（单季度）</h3><div class="hint">人民币百万元；早期季度未在新闻稿正文披露，标记为空</div><div class="chart-box"><canvas id="chart-cash-ocf"></canvas></div></div>
+    <div class="card"><h3>现金及短期投资余额</h3><div class="hint">人民币十亿元（期末余额）</div><div class="chart-box"><canvas id="chart-cash-position"></canvas></div></div>
+    <div class="card"><h3>总资产 vs 总负债（年末）</h3><div class="hint">人民币百万元</div><div class="chart-box"><canvas id="chart-cash-bs"></canvas></div></div>
+    <div class="card"><h3>资产负债率（年末）</h3><div class="hint">%，(总负债/总资产)</div><div class="chart-box"><canvas id="chart-cash-debt"></canvas></div></div>
+  </div>
+  <div class="footnote">说明：PDD Holdings 的 6-K 季度公告未单独披露资本开支（Capex）及自由现金流（FCF）口径，因此本报告以"经营活动现金流 + 资产负债表"呈现现金状况，未强行套用 Capex/FCF 模板。</div>
+</section>
+
+<!-- ============ RETURNS ============ -->
+<section class="section" id="sec-returns">
+  <div class="grid grid-2">
+    <div class="card"><h3>ROE / ROA（年度，估算）</h3><div class="hint">归母净利润 / 期末净资产、总资产；港股/美股公司通常不披露官方加权ROE，此处为估算值</div><div class="chart-box"><canvas id="chart-ret-roe"></canvas></div></div>
+    <div class="card"><h3>净利率 vs ROE</h3><div class="hint">%</div><div class="chart-box"><canvas id="chart-ret-margin-roe"></canvas></div></div>
+  </div>
+  <div class="card" style="margin-top:16px;">
+    <h3>年度归母权益变化</h3><div class="hint">人民币百万元（总资产 − 总负债，估算股东权益）</div>
+    <div class="chart-box short"><canvas id="chart-ret-equity"></canvas></div>
+  </div>
+  <div class="legend-note">注：PDD Holdings 自上市以来未派发现金股息，故本报告不含 DPS（每股股息）图表。</div>
+</section>
+
+<!-- ============ ANNUAL SUMMARY ============ -->
+<section class="section" id="sec-annual">
+  <div class="grid grid-2">
+    <div class="card"><h3>年度营业收入与增速</h3><div class="hint">人民币十亿元 / %</div><div class="chart-box"><canvas id="chart-an-rev"></canvas></div></div>
+    <div class="card"><h3>年度净利润（GAAP vs Non-GAAP）</h3><div class="hint">人民币十亿元</div><div class="chart-box"><canvas id="chart-an-net"></canvas></div></div>
+  </div>
+  <div class="card" style="margin-top:16px;">
+    <h3>年度关键指标表</h3>
+    <div class="table-scroll"><table id="annual-table"></table></div>
+  </div>
+</section>
+
+<!-- ============ QUARTERLY TABLE ============ -->
+<section class="section" id="sec-table">
+  <div class="card">
+    <h3>季度财务数据明细（人民币百万元，EPS 为人民币元）</h3>
+    <div class="hint">数据来源：SEC 6-K 未审计财报公告原文提取；空白单元格代表当季度未在新闻稿正文中披露该指标</div>
+    <div class="table-scroll"><table id="quarterly-table"></table></div>
+  </div>
+</section>
+
+<!-- ============ MANAGEMENT COMMENTARY ============ -->
+<section class="section" id="sec-mgmt">
+  <div class="search-row">
+    <input type="text" id="mgmt-search" placeholder="搜索管理层观点关键词，如 “AI”、“供应链”、“Temu”、“补贴”…" oninput="filterMgmt()">
+  </div>
+  <div class="mgmt-layout">
+    <div class="year-nav" id="mgmt-year-nav"></div>
+    <div id="mgmt-content"></div>
+  </div>
+</section>
+
+<div class="footnote">
+  数据来源：PDD Holdings Inc. 通过 SEC EDGAR（CIK 0001737806）提交的 6-K 表格所附季度业绩新闻稿（Exhibit 99.1），2018Q2–2026Q1 共 32 份。
+  非公认会计准则（Non-GAAP）指标由公司自行定义并披露，剔除股权激励费用、部分投资公允价值变动及可转换债券摊销利息等影响，仅供参考，不能替代 GAAP 数据。
+  ROE/ROA 为本报告基于期末资产负债表数据估算，公司未披露官方加权平均口径。本报告仅用于研究分析，不构成任何投资建议。
+</div>
+
+</div>
+
+<script>
+const DATA = __DATA_JSON__;
+
+function fmt(v, d=1) {
+  if (v === null || v === undefined || isNaN(v)) return '—';
+  return Number(v).toLocaleString('en-US', {minimumFractionDigits:d, maximumFractionDigits:d});
+}
+function fmtInt(v) {
+  if (v === null || v === undefined || isNaN(v)) return '—';
+  return Math.round(v).toLocaleString('en-US');
+}
+function pct(v, d=1) {
+  if (v === null || v === undefined || isNaN(v)) return '—';
+  return fmt(v, d) + '%';
+}
+function cssVar(name) {
+  return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+}
+
+const Q = DATA.quarterly;
+const A = DATA.annual;
+const MGMT = DATA.mgmt;
+
+const qLabels = Q.map(r => r.quarter);
+
+function yoyRevenue() {
+  return Q.map((r, i) => {
+    const prev = Q[i-4];
+    if (!prev || r.revenue == null || prev.revenue == null) return null;
+    return (r.revenue / prev.revenue - 1) * 100;
+  });
+}
+
+function margin(numArr, denArr) {
+  return numArr.map((n, i) => (n == null || denArr[i] == null || denArr[i] === 0) ? null : n / denArr[i] * 100);
+}
+
+const _chartsReady = {};
+function show(sec, ev) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav button').forEach(b => b.classList.remove('active'));
+  document.getElementById('sec-' + sec).classList.add('active');
+  if (ev) ev.target.classList.add('active');
+  if (!_chartsReady[sec]) {
+    _chartsReady[sec] = true;
+    const fns = {
+      overview: initOverview, revenue: initRevenue, profit: initProfit,
+      cash: initCash, returns: initReturns, annual: initAnnual,
+      table: initTables, mgmt: initMgmt
+    };
+    if (fns[sec]) fns[sec]();
+  }
+}
+
+function baseOpts(extra) {
+  const grid = cssVar('--gridline');
+  const muted = cssVar('--text-muted');
+  const opts = {
+    responsive: true,
+    maintainAspectRatio: false,
+    interaction: { mode: 'index', intersect: false },
+    plugins: {
+      legend: { display: true, labels: { color: cssVar('--text-secondary'), boxWidth: 12, font:{size:11} } },
+      tooltip: { titleColor: '#fff', bodyColor: '#fff' }
+    },
+    scales: {
+      x: { grid: { color: grid, display:false }, ticks: { color: muted, font:{size:10}, maxRotation:0, autoSkip:true, maxTicksLimit: 16 } },
+      y: { grid: { color: grid }, ticks: { color: muted, font:{size:10} } }
+    }
+  };
+  return Object.assign(opts, extra || {});
+}
+
+function lineDs(label, data, color, extra) {
+  return Object.assign({ label, data, borderColor: color, backgroundColor: color, borderWidth: 2, pointRadius: 2, tension: 0.25, spanGaps: true }, extra || {});
+}
+function barDs(label, data, color, extra) {
+  return Object.assign({ label, data, backgroundColor: color, borderRadius: 3, maxBarThickness: 26 }, extra || {});
+}
+
+/* ============ OVERVIEW ============ */
+function initOverview() {
+  const s1 = cssVar('--series-1'), s2 = cssVar('--series-6'), s3 = cssVar('--series-2'), s4 = cssVar('--series-3'), s5=cssVar('--series-5');
+
+  // stat tiles: latest quarter vs YoY
+  const latest = Q[Q.length - 1];
+  const prevY = Q[Q.length - 5];
+  const statHtml = [
+    ['最新季度营收', latest.quarter, latest.revenue, prevY.revenue, 'RMB M'],
+    ['最新季度归母净利润(GAAP)', latest.quarter, latest.net_income, prevY.net_income, 'RMB M'],
+    ['最新季度Non-GAAP净利润', latest.quarter, latest.nongaap_net_income, prevY.nongaap_net_income, 'RMB M'],
+    ['最新季度营业利润率', latest.quarter, latest.operating_profit/latest.revenue*100, prevY.operating_profit/prevY.revenue*100, '%'],
+  ].map(([label, q, v, pv, unit]) => {
+    let delta = '';
+    if (v != null && pv) {
+      const chg = (v/pv - 1) * 100;
+      const cls = chg >= 0 ? 'up' : 'down';
+      delta = `<div class="delta ${cls}">${chg>=0?'▲':'▼'} ${fmt(Math.abs(chg))}% YoY</div>`;
+    }
+    const val = unit === '%' ? pct(v) : fmtInt(v) + ' ' + unit;
+    return `<div class="stat-tile"><div class="label">${label} (${q})</div><div class="value">${val}</div>${delta}</div>`;
+  }).join('');
+  document.getElementById('overview-stats').innerHTML = statHtml;
+
+  new Chart(document.getElementById('chart-ov-rev'), {
+    type: 'bar',
+    data: { labels: qLabels, datasets: [
+      barDs('营业收入', Q.map(r=>r.revenue), s1),
+      lineDs('归母净利润(GAAP)', Q.map(r=>r.net_income), s2, {type:'line', yAxisID:'y'})
+    ]},
+    options: baseOpts()
+  });
+
+  new Chart(document.getElementById('chart-ov-yoy'), {
+    type: 'line',
+    data: { labels: qLabels, datasets: [ lineDs('营收同比增速', yoyRevenue(), s1, {fill:true, backgroundColor: s1+'22'}) ] },
+    options: baseOpts()
+  });
+
+  const gm = margin(Q.map(r=>r.gross_profit), Q.map(r=>r.revenue));
+  const om = margin(Q.map(r=>r.operating_profit), Q.map(r=>r.revenue));
+  const nm = margin(Q.map(r=>r.net_income), Q.map(r=>r.revenue));
+  new Chart(document.getElementById('chart-ov-margin'), {
+    type: 'line',
+    data: { labels: qLabels, datasets: [
+      lineDs('毛利率', gm, s3),
+      lineDs('营业利润率', om, s1),
+      lineDs('净利率', nm, s2),
+    ]},
+    options: baseOpts()
+  });
+
+  new Chart(document.getElementById('chart-ov-gaap'), {
+    type: 'bar',
+    data: { labels: qLabels, datasets: [
+      barDs('GAAP 净利润', Q.map(r=>r.net_income), s1),
+      barDs('Non-GAAP 净利润', Q.map(r=>r.nongaap_net_income), s3),
+    ]},
+    options: baseOpts()
+  });
+}
+
+/* ============ REVENUE MIX ============ */
+function initRevenue() {
+  const s1 = cssVar('--series-1'), s2 = cssVar('--series-2'), s8 = cssVar('--series-8');
+  new Chart(document.getElementById('chart-rev-stack'), {
+    type: 'bar',
+    data: { labels: qLabels, datasets: [
+      barDs('在线营销服务及其他', Q.map(r=>r.rev_marketing), s1, {stack:'s'}),
+      barDs('交易服务', Q.map(r=>r.rev_transaction), s2, {stack:'s'}),
+      barDs('商品销售(自营,已停止披露)', Q.map(r=>r.rev_merchandise), s8, {stack:'s'}),
+    ]},
+    options: baseOpts({ scales: { x:{ stacked:true, grid:{display:false}, ticks:{color:cssVar('--text-muted'),font:{size:10},maxTicksLimit:16} }, y:{ stacked:true, grid:{color:cssVar('--gridline')}, ticks:{color:cssVar('--text-muted')} } } })
+  });
+
+  const shareMkt = Q.map(r => (r.revenue && r.rev_marketing!=null) ? r.rev_marketing/r.revenue*100 : null);
+  const shareTxn = Q.map(r => (r.revenue && r.rev_transaction!=null) ? r.rev_transaction/r.revenue*100 : null);
+  new Chart(document.getElementById('chart-rev-share'), {
+    type: 'line',
+    data: { labels: qLabels, datasets: [
+      lineDs('在线营销服务占比', shareMkt, s1, {fill:true, backgroundColor:s1+'22'}),
+      lineDs('交易服务占比', shareTxn, s2, {fill:true, backgroundColor:s2+'22'}),
+    ]},
+    options: baseOpts({ scales: { x:{grid:{display:false},ticks:{color:cssVar('--text-muted'),font:{size:10},maxTicksLimit:16}}, y:{min:0,max:100,grid:{color:cssVar('--gridline')},ticks:{color:cssVar('--text-muted')}} } })
+  });
+
+  new Chart(document.getElementById('chart-rev-mix-line'), {
+    type: 'line',
+    data: { labels: qLabels, datasets: [
+      lineDs('在线营销服务', Q.map(r=>r.rev_marketing), s1),
+      lineDs('交易服务', Q.map(r=>r.rev_transaction), s2),
+    ]},
+    options: baseOpts()
+  });
+}
+
+/* ============ PROFIT ============ */
+function initProfit() {
+  const s1 = cssVar('--series-1'), s3 = cssVar('--series-3'), s2=cssVar('--series-2'), s6=cssVar('--series-6'), s7=cssVar('--series-7'), s5=cssVar('--series-5');
+
+  new Chart(document.getElementById('chart-profit-op'), {
+    type: 'bar',
+    data: { labels: qLabels, datasets: [
+      barDs('营业利润(GAAP)', Q.map(r=>r.operating_profit), s1),
+      barDs('Non-GAAP营业利润', Q.map(r=>r.nongaap_operating_profit), s3),
+    ]},
+    options: baseOpts()
+  });
+
+  new Chart(document.getElementById('chart-profit-net'), {
+    type: 'bar',
+    data: { labels: qLabels, datasets: [
+      barDs('归母净利润(GAAP)', Q.map(r=>r.net_income), s2),
+      barDs('Non-GAAP归母净利润', Q.map(r=>r.nongaap_net_income), s3),
+    ]},
+    options: baseOpts()
+  });
+
+  new Chart(document.getElementById('chart-profit-opex'), {
+    type: 'bar',
+    data: { labels: qLabels, datasets: [
+      barDs('销售及营销费用', Q.map(r=>r.sm_expense), s6, {stack:'o'}),
+      barDs('管理费用', Q.map(r=>r.ga_expense), s7, {stack:'o'}),
+      barDs('研发费用', Q.map(r=>r.rd_expense), s5, {stack:'o'}),
+    ]},
+    options: baseOpts({ scales: { x:{ stacked:true, grid:{display:false}, ticks:{color:cssVar('--text-muted'),font:{size:10},maxTicksLimit:16} }, y:{ stacked:true, grid:{color:cssVar('--gridline')}, ticks:{color:cssVar('--text-muted')} } } })
+  });
+
+  new Chart(document.getElementById('chart-profit-eps'), {
+    type: 'line',
+    data: { labels: qLabels, datasets: [
+      lineDs('稀释EPS(ADS, GAAP)', Q.map(r=>r.eps_diluted_ads), s1),
+      lineDs('稀释EPS(ADS, Non-GAAP)', Q.map(r=>r.nongaap_eps_diluted_ads), s3),
+    ]},
+    options: baseOpts()
+  });
+}
+
+/* ============ CASH & BALANCE SHEET ============ */
+function initCash() {
+  const s1 = cssVar('--series-1'), s2 = cssVar('--series-2'), s6 = cssVar('--series-6');
+
+  new Chart(document.getElementById('chart-cash-ocf'), {
+    type: 'bar',
+    data: { labels: qLabels, datasets: [ barDs('经营活动现金流(单季度)', Q.map(r=>r.ocf), s2) ] },
+    options: baseOpts()
+  });
+
+  new Chart(document.getElementById('chart-cash-position'), {
+    type: 'line',
+    data: { labels: qLabels, datasets: [ lineDs('现金+短期投资(十亿元)', Q.map(r=>r.cash_position_b), s1, {fill:true, backgroundColor:s1+'22'}) ] },
+    options: baseOpts()
+  });
+
+  new Chart(document.getElementById('chart-cash-bs'), {
+    type: 'bar',
+    data: { labels: A.map(r=>r.year), datasets: [
+      barDs('总资产', A.map(r=>r.total_assets), s1),
+      barDs('总负债', A.map(r=>r.total_liabilities), s6),
+    ]},
+    options: baseOpts()
+  });
+
+  new Chart(document.getElementById('chart-cash-debt'), {
+    type: 'line',
+    data: { labels: A.map(r=>r.year), datasets: [ lineDs('资产负债率', A.map(r=>r.debt_ratio_pct), s6, {fill:true, backgroundColor:s6+'22'}) ] },
+    options: baseOpts()
+  });
+}
+
+/* ============ RETURNS ============ */
+function initReturns() {
+  const s1 = cssVar('--series-1'), s2 = cssVar('--series-2'), s6=cssVar('--series-6');
+
+  new Chart(document.getElementById('chart-ret-roe'), {
+    type: 'bar',
+    data: { labels: A.map(r=>r.year), datasets: [
+      barDs('ROE (估算,%)', A.map(r=>r.roe_pct), s1),
+      barDs('ROA (估算,%)', A.map(r=>r.roa_pct), s2),
+    ]},
+    options: baseOpts()
+  });
+
+  const netMarginAnnual = A.map(r => (r.revenue && r.net_income!=null) ? r.net_income/r.revenue*100 : null);
+  new Chart(document.getElementById('chart-ret-margin-roe'), {
+    type: 'line',
+    data: { labels: A.map(r=>r.year), datasets: [
+      lineDs('净利率', netMarginAnnual, s2),
+      lineDs('ROE(估算)', A.map(r=>r.roe_pct), s1),
+    ]},
+    options: baseOpts()
+  });
+
+  new Chart(document.getElementById('chart-ret-equity'), {
+    type: 'bar',
+    data: { labels: A.map(r=>r.year), datasets: [ barDs('股东权益(估算)', A.map(r=>r.equity), s1) ] },
+    options: baseOpts()
+  });
+}
+
+/* ============ ANNUAL SUMMARY ============ */
+function initAnnual() {
+  const s1 = cssVar('--series-1'), s2 = cssVar('--series-2'), s3=cssVar('--series-3');
+  const revB = A.map(r => r.revenue!=null ? r.revenue/1000 : null);
+  const growth = A.map((r,i) => (i===0 || A[i-1].revenue==null || r.revenue==null) ? null : (r.revenue/A[i-1].revenue - 1)*100);
+
+  new Chart(document.getElementById('chart-an-rev'), {
+    type: 'bar',
+    data: { labels: A.map(r=>r.year), datasets: [
+      barDs('年度营业收入(十亿元)', revB, s1),
+    ]},
+    options: baseOpts()
+  });
+
+  new Chart(document.getElementById('chart-an-net'), {
+    type: 'bar',
+    data: { labels: A.map(r=>r.year), datasets: [
+      barDs('GAAP净利润(十亿元)', A.map(r=>r.net_income!=null?r.net_income/1000:null), s2),
+      barDs('Non-GAAP净利润(十亿元)', A.map(r=>r.nongaap_net_income!=null?r.nongaap_net_income/1000:null), s3),
+    ]},
+    options: baseOpts()
+  });
+
+  const cols = [
+    ['年度','year',v=>v],
+    ['营业收入(RMB M)','revenue',fmtInt],
+    ['同比增速','__growth',v=>v==null?'—':pct(v)],
+    ['毛利率','__gm',v=>v==null?'—':pct(v)],
+    ['营业利润(GAAP)','operating_profit',fmtInt],
+    ['Non-GAAP营业利润','nongaap_operating_profit',fmtInt],
+    ['归母净利润(GAAP)','net_income',fmtInt],
+    ['Non-GAAP净利润','nongaap_net_income',fmtInt],
+    ['经营现金流','ocf',fmtInt],
+    ['总资产','total_assets',fmtInt],
+    ['股东权益(估算)','equity',fmtInt],
+    ['ROE(估算)','roe_pct',v=>v==null?'—':pct(v)],
+    ['ROA(估算)','roa_pct',v=>v==null?'—':pct(v)],
+    ['资产负债率','debt_ratio_pct',v=>v==null?'—':pct(v)],
+  ];
+  let html = '<thead><tr>' + cols.map(c=>`<th>${c[0]}</th>`).join('') + '</tr></thead><tbody>';
+  A.forEach((r,i) => {
+    html += '<tr>' + cols.map(c => {
+      if (c[1] === '__growth') return `<td>${c[2](growth[i])}</td>`;
+      if (c[1] === '__gm') { const gm = (r.revenue && r.gross_profit!=null) ? r.gross_profit/r.revenue*100 : null; return `<td>${c[2](gm)}</td>`; }
+      return `<td>${c[2](r[c[1]])}</td>`;
+    }).join('') + '</tr>';
+  });
+  html += '</tbody>';
+  document.getElementById('annual-table').innerHTML = html;
+}
+
+/* ============ QUARTERLY TABLE ============ */
+function initTables() {
+  const cols = [
+    ['季度','quarter',v=>v],
+    ['营业收入','revenue',fmtInt],
+    ['营销服务收入','rev_marketing',fmtInt],
+    ['交易服务收入','rev_transaction',fmtInt],
+    ['毛利润','gross_profit',fmtInt],
+    ['营业利润(GAAP)','operating_profit',fmtInt],
+    ['Non-GAAP营业利润','nongaap_operating_profit',fmtInt],
+    ['归母净利润(GAAP)','net_income',fmtInt],
+    ['Non-GAAP净利润','nongaap_net_income',fmtInt],
+    ['稀释EPS(ADS)','eps_diluted_ads',v=>fmt(v,2)],
+    ['Non-GAAP稀释EPS','nongaap_eps_diluted_ads',v=>fmt(v,2)],
+    ['经营现金流','ocf',fmtInt],
+    ['现金+短投(十亿)','cash_position_b',v=>fmt(v,1)],
+    ['总资产','total_assets',fmtInt],
+  ];
+  let html = '<thead><tr>' + cols.map(c=>`<th>${c[0]}</th>`).join('') + '</tr></thead><tbody>';
+  Q.forEach(r => {
+    html += '<tr>' + cols.map(c => `<td>${c[2](r[c[1]])}</td>`).join('') + '</tr>';
+  });
+  html += '</tbody>';
+  document.getElementById('quarterly-table').innerHTML = html;
+}
+
+/* ============ MANAGEMENT COMMENTARY ============ */
+function initMgmt() {
+  const years = [...new Set(qLabels.map(q => q.slice(0,4)))];
+  const nav = document.getElementById('mgmt-year-nav');
+  nav.innerHTML = years.map((y,i) => `<button class="${i===years.length-1?'active':''}" onclick="scrollToYear('${y}', event)">${y}</button>`).join('');
+
+  let html = '';
+  years.forEach(y => {
+    html += `<div class="year-block" id="year-${y}">`;
+    qLabels.filter(q => q.startsWith(y)).forEach(q => {
+      const d = MGMT[q];
+      if (!d) return;
+      html += `<div class="q-card" data-q="${q}">`;
+      html += `<h4>${q}</h4>`;
+      if (d.bullets && d.bullets.length) {
+        html += '<ul class="bullets">' + d.bullets.map(b => `<li>${b}</li>`).join('') + '</ul>';
+      }
+      if (d.quotes && d.quotes.length) {
+        d.quotes.forEach(qt => {
+          html += `<div class="quote">"${qt.quote}"` + (qt.speaker ? `<span class="attr">— ${qt.speaker}${qt.title ? ', ' + qt.title : ''}</span>` : '') + `</div>`;
+        });
+      }
+      html += `</div>`;
+    });
+    html += `</div>`;
+  });
+  document.getElementById('mgmt-content').innerHTML = html;
+}
+
+function scrollToYear(y, ev) {
+  document.querySelectorAll('.year-nav button').forEach(b => b.classList.remove('active'));
+  if (ev) ev.target.classList.add('active');
+  const el = document.getElementById('year-' + y);
+  if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function filterMgmt() {
+  const term = document.getElementById('mgmt-search').value.trim().toLowerCase();
+  document.querySelectorAll('.q-card').forEach(card => {
+    const text = card.textContent.toLowerCase();
+    card.style.display = (!term || text.includes(term)) ? '' : 'none';
+  });
+}
+
+window.addEventListener('load', () => { initOverview(); });
+</script>
+</body>
+</html>
