@@ -223,6 +223,7 @@ mark { background: var(--series-3); color: #0b0b0b; border-radius:3px; padding:0
   <button onclick="show('annual', event)">📅 年度汇总</button>
   <button onclick="show('table', event)">📋 季度明细表</button>
   <button onclick="show('mgmt', event)">💬 管理层观点</button>
+  <button onclick="show('compare', event)">🆚 PDD vs 阿里电商</button>
 </nav>
 
 <!-- ============ OVERVIEW ============ -->
@@ -315,6 +316,27 @@ mark { background: var(--series-3); color: #0b0b0b; border-radius:3px; padding:0
   </div>
 </section>
 
+<!-- ============ PDD vs ALIBABA E-COMMERCE COMPARISON ============ -->
+<section class="section" id="sec-compare">
+  <div class="hint" style="margin-bottom:14px;">
+    PDD 为自然年（1–12月），阿里巴巴财年截至次年3月31日，按覆盖同一时间段就近配对（如 PDD 2018 自然年对齐阿里 FY2019）。
+    阿里"电商分部"口径随其分部架构调整变化：2018–2021 用"核心商业"（含本地生活+菜鸟，当时尚未拆分）；2022–2023 用"中国商业+国际商业"；
+    2024–2026 用"阿里中国电商事业群+国际数字商业集团"（重列口径）。自由现金流一栏，阿里巴巴历史上从未按分部披露资本开支，只能用集团整体 FCF（含云计算、本地生活、大文娱等全部业务）作参考，并非电商分部单独数值。
+  </div>
+  <div class="grid grid-2">
+    <div class="card"><h3>营业收入对比</h3><div class="hint">人民币十亿元</div><div class="chart-box"><canvas id="chart-cmp-rev"></canvas></div></div>
+    <div class="card"><h3>经营利润率对比</h3><div class="hint">PDD：GAAP经营利润率；阿里：电商分部Non-GAAP Adjusted EBITA利润率</div><div class="chart-box"><canvas id="chart-cmp-margin"></canvas></div></div>
+  </div>
+  <div class="card" style="margin-top:16px;">
+    <h3>自由现金流对比</h3><div class="hint">人民币十亿元；PDD 为公司整体（即电商业务本身），阿里为集团整体（含非电商业务，仅供参考）</div>
+    <div class="chart-box"><canvas id="chart-cmp-fcf"></canvas></div>
+  </div>
+  <div class="card" style="margin-top:16px;">
+    <h3>对比数据明细</h3>
+    <div class="table-scroll"><table id="compare-table"></table></div>
+  </div>
+</section>
+
 <div class="footnote">
   数据来源：PDD Holdings Inc. 通过 SEC EDGAR（CIK 0001737806）提交的 6-K 表格所附季度业绩新闻稿（Exhibit 99.1），2018Q2–2026Q1 共 32 份。
   非公认会计准则（Non-GAAP）指标由公司自行定义并披露，剔除股权激励费用、部分投资公允价值变动及可转换债券摊销利息等影响，仅供参考，不能替代 GAAP 数据。
@@ -325,6 +347,19 @@ mark { background: var(--series-3); color: #0b0b0b; border-radius:3px; padding:0
 
 <script>
 const DATA = __DATA_JSON__;
+
+// PDD (calendar year) vs Alibaba e-commerce segment (fiscal year ending Mar 31), RMB billion.
+// Source: PDD SEC 6-K quarterly releases + 20-F annual reports (capex); Alibaba SEC 20-F segment notes (Adjusted EBITA).
+const COMPARE = [
+  { pddYear: '2018', babaFY: 'FY2019', pddRev: 13.12,  pddOp: -10.80, pddFcf: 7.74,   babaRev: 323.40, babaEbita: 136.17, babaFcf: 104.48 },
+  { pddYear: '2019', babaFY: 'FY2020', pddRev: 30.14,  pddOp: -8.54,  pddFcf: 14.79,  babaRev: 436.10, babaEbita: 165.80, babaFcf: 130.91 },
+  { pddYear: '2020', babaFY: 'FY2021', pddRev: 59.49,  pddOp: -9.38,  pddFcf: 28.15,  babaRev: 621.15, babaEbita: 194.51, babaFcf: 172.66 },
+  { pddYear: '2021', babaFY: 'FY2022', pddRev: 93.95,  pddOp: 6.90,   pddFcf: 25.50,  babaRev: 653.78, babaEbita: 173.44, babaFcf: 98.87 },
+  { pddYear: '2022', babaFY: 'FY2023', pddRev: 130.56, pddOp: 30.40,  pddFcf: 47.87,  babaRev: 651.94, babaEbita: 179.24, babaFcf: 171.66 },
+  { pddYear: '2023', babaFY: 'FY2024', pddRev: 247.64, pddOp: 58.70,  pddFcf: 93.58,  babaRev: 592.70, babaEbita: 178.94, babaFcf: 156.21 },
+  { pddYear: '2024', babaFY: 'FY2025', pddRev: 393.84, pddOp: 108.42, pddFcf: 120.96, babaRev: 640.68, babaEbita: 178.09, babaFcf: 73.87 },
+  { pddYear: '2025', babaFY: 'FY2026', pddRev: 431.85, pddOp: 94.62,  pddFcf: 105.79, babaRev: 698.39, babaEbita: 105.46, babaFcf: -46.61 },
+];
 
 function fmt(v, d=1) {
   if (v === null || v === undefined || isNaN(v)) return '—';
@@ -371,7 +406,7 @@ function show(sec, ev) {
     const fns = {
       overview: initOverview, revenue: initRevenue, profit: initProfit,
       cash: initCash, returns: initReturns, annual: initAnnual,
-      table: initTables, mgmt: initMgmt
+      table: initTables, mgmt: initMgmt, compare: initCompare
     };
     if (fns[sec]) fns[sec]();
   }
@@ -722,6 +757,59 @@ function filterMgmt() {
     const text = card.textContent.toLowerCase();
     card.style.display = (!term || text.includes(term)) ? '' : 'none';
   });
+}
+
+/* ============ PDD vs ALIBABA E-COMMERCE COMPARISON ============ */
+function initCompare() {
+  const s1 = cssVar('--series-1'), s6 = cssVar('--series-6'), s2 = cssVar('--series-2'), s3 = cssVar('--series-3');
+  const labels = COMPARE.map(r => `${r.pddYear}\n${r.babaFY}`);
+
+  new Chart(document.getElementById('chart-cmp-rev'), {
+    type: 'bar',
+    data: { labels, datasets: [
+      barDs('PDD 营业收入', COMPARE.map(r => r.pddRev), s1),
+      barDs('阿里电商分部营收', COMPARE.map(r => r.babaRev), s6),
+    ]},
+    options: baseOpts()
+  });
+
+  const pddMargin = COMPARE.map(r => r.pddOp / r.pddRev * 100);
+  const babaMargin = COMPARE.map(r => r.babaEbita / r.babaRev * 100);
+  new Chart(document.getElementById('chart-cmp-margin'), {
+    type: 'line',
+    data: { labels, datasets: [
+      lineDs('PDD 经营利润率(GAAP)', pddMargin, s1),
+      lineDs('阿里电商Adjusted EBITA利润率', babaMargin, s6),
+    ]},
+    options: baseOpts()
+  });
+
+  new Chart(document.getElementById('chart-cmp-fcf'), {
+    type: 'bar',
+    data: { labels, datasets: [
+      barDs('PDD 自由现金流(公司整体)', COMPARE.map(r => r.pddFcf), s2),
+      barDs('阿里自由现金流(集团整体)', COMPARE.map(r => r.babaFcf), s3),
+    ]},
+    options: baseOpts()
+  });
+
+  const cols = [
+    ['报告期', r => `PDD ${r.pddYear} / 阿里 ${r.babaFY}`],
+    ['PDD营收', r => fmt(r.pddRev)],
+    ['PDD经营利润(GAAP)', r => fmt(r.pddOp)],
+    ['PDD经营利润率', r => pct(r.pddOp / r.pddRev * 100)],
+    ['PDD自由现金流', r => fmt(r.pddFcf)],
+    ['阿里电商分部营收', r => fmt(r.babaRev)],
+    ['阿里电商Adjusted EBITA', r => fmt(r.babaEbita)],
+    ['阿里电商EBITA利润率', r => pct(r.babaEbita / r.babaRev * 100)],
+    ['阿里集团自由现金流', r => fmt(r.babaFcf)],
+  ];
+  let html = '<thead><tr>' + cols.map(c => `<th>${c[0]}</th>`).join('') + '</tr></thead><tbody>';
+  COMPARE.forEach(r => {
+    html += '<tr>' + cols.map(c => `<td>${c[1](r)}</td>`).join('') + '</tr>';
+  });
+  html += '</tbody>';
+  document.getElementById('compare-table').innerHTML = html;
 }
 
 window.addEventListener('load', () => { initOverview(); });

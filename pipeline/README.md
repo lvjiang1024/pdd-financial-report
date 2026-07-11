@@ -74,3 +74,26 @@ python3 build_report_data.py  # 汇总数据、生成最终 HTML 报告
   `to_million()` 的换算逻辑），如果未来又变了新的表述方式，提取正则可能需要相应调整。
 - 年度（Fiscal Year）数据只在 Q4 财报里出现，所以只有当新增的季度是 Q4 时，
   `annual_raw.json` 才会新增一年的数据。
+
+## 与阿里巴巴电商业务对比（"PDD vs 阿里电商"Tab）
+
+`PDD_Holdings_财务分析报告.html` 和阿里巴巴报告（`../../Alibaba/阿里巴巴集团_财务分析报告.html`）
+都内嵌了一份相同的 `COMPARE` 数据（写死在各自的 `<script>` 里，不是从 JSON 动态注入的），
+数据本体和来源说明存档在 `data/pdd_vs_alibaba_compare.json`。
+
+- **PDD 一侧**：营收/经营利润来自 `annual_raw.json`；自由现金流 = OCF − Capex，
+  由于 PDD 的 6-K 季度公告从不披露资本开支，Capex 是额外去 SEC 20-F 年报的完整现金流量表里
+  （"Purchase of property, equipment and software" 一行）抓取的，具体用了哪几份 20-F 见
+  `pdd_vs_alibaba_compare.json` 里的 `pdd_capex_source`。
+- **阿里巴巴一侧**：用的是"电商分部" Adjusted EBITA（不是集团整体经营利润），
+  因为阿里是多元化集团，整体利润会被云计算/本地生活/大文娱等其他业务的盈亏拉低或推高。
+  这个数据只在阿里的**年度 20-F**"Segment information"附注里有，季度 6-K 新闻稿不会披露到这个粒度，
+  且阿里 dual-listing 导致同一时间点会有五六份相似的 6-K（股份回购、HKEX 披露等），
+  很难只靠日期猜出哪份是真正的财报正文，改为直接读 20-F 更可靠。分部口径随阿里组织架构调整
+  变了三次，具体用哪个口径见 `pdd_vs_alibaba_compare.json` 的 `alibaba_ebita_source`。
+- **两边都没有的**：阿里从未按分部披露资本开支，所以"自由现金流"一栏阿里只能用**集团整体** FCF
+  （已有的 `阿里巴巴_annual_data.json`），并在报告里明确标注这一点，不能算作电商分部单独数值。
+
+新增一年数据时：PDD 侧照常跑 `pipeline/` 里的流程；阿里侧要多做一步——去阿里最新的 20-F
+找 "Segment information" 附注里电商相关分部的 Adjusted EBITA，手动加一行到两份报告 HTML 里
+各自的 `COMPARE` 数组（以及这份 `pdd_vs_alibaba_compare.json`），目前没有自动化脚本。

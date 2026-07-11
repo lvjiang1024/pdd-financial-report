@@ -1,0 +1,38 @@
+{
+  "_readme": "PDD (calendar year) vs Alibaba e-commerce segment (fiscal year ending Mar 31), RMB billion. See pipeline/README.md '与阿里巴巴电商对比' section for sourcing notes and how to extend this with a new year.",
+  "rows": [
+    { "pddYear": "2018", "babaFY": "FY2019", "pddRev": 13.12,  "pddOp": -10.80, "pddFcf": 7.74,   "babaRev": 323.40, "babaEbita": 136.17, "babaFcf": 104.48 },
+    { "pddYear": "2019", "babaFY": "FY2020", "pddRev": 30.14,  "pddOp": -8.54,  "pddFcf": 14.79,  "babaRev": 436.10, "babaEbita": 165.80, "babaFcf": 130.91 },
+    { "pddYear": "2020", "babaFY": "FY2021", "pddRev": 59.49,  "pddOp": -9.38,  "pddFcf": 28.15,  "babaRev": 621.15, "babaEbita": 194.51, "babaFcf": 172.66 },
+    { "pddYear": "2021", "babaFY": "FY2022", "pddRev": 93.95,  "pddOp": 6.90,   "pddFcf": 25.50,  "babaRev": 653.78, "babaEbita": 173.44, "babaFcf": 98.87 },
+    { "pddYear": "2022", "babaFY": "FY2023", "pddRev": 130.56, "pddOp": 30.40,  "pddFcf": 47.87,  "babaRev": 651.94, "babaEbita": 179.24, "babaFcf": 171.66 },
+    { "pddYear": "2023", "babaFY": "FY2024", "pddRev": 247.64, "pddOp": 58.70,  "pddFcf": 93.58,  "babaRev": 592.70, "babaEbita": 178.94, "babaFcf": 156.21 },
+    { "pddYear": "2024", "babaFY": "FY2025", "pddRev": 393.84, "pddOp": 108.42, "pddFcf": 120.96, "babaRev": 640.68, "babaEbita": 178.09, "babaFcf": 73.87 },
+    { "pddYear": "2025", "babaFY": "FY2026", "pddRev": 431.85, "pddOp": 94.62,  "pddFcf": 105.79, "babaRev": 698.39, "babaEbita": 105.46, "babaFcf": -46.61 }
+  ],
+  "pdd_capex_source": {
+    "note": "PDD's 6-K quarterly releases never disclose capex/FCF. Pulled from the 20-F annual reports' full cash flow statement (line 'Purchase of property, equipment and software (and intangible assets)').",
+    "20f_accessions_used": {
+      "FY2018-2020": "0001104659-21-058237 (pdd-20201231x20f.htm)",
+      "FY2020-2022": "0001104659-23-049927 (pdd-20221231x20f.htm)",
+      "FY2023-2025": "0001104659-26-050727 (pdd-20251231x20f.htm)"
+    }
+  },
+  "alibaba_ebita_source": {
+    "note": "Alibaba's segment Adjusted EBITA pulled from the 'Segment information' note in each year's 20-F (Item 18 financial statements), not from quarterly 6-K press releases (too many near-duplicate HKEX filings around results season to reliably script).",
+    "segment_definition_by_era": {
+      "FY2018-2021": "核心商业 Core Commerce (bundles China commerce + International commerce + Local consumer services + Cainiao logistics; not split out yet)",
+      "FY2022-2023": "中国商业 China commerce + 国际商业 International commerce",
+      "FY2024-2026": "阿里中国电商事业群 Alibaba China E-commerce Group + 阿里国际数字商业集团 Alibaba International Digital Commerce Group (restated structure)"
+    },
+    "20f_accessions_used": {
+      "FY2018-2019": "0001047469-19-003492 (a2238953z20-f.htm)",
+      "FY2020-2021": "0001104659-21-096092 (baba-20210331x20f.htm)",
+      "FY2021-2023": "0000950170-23-033752 (baba-20230331.htm)",
+      "FY2023-2025 restated (Taobao/Tmall Group + AIDC)": "0000950170-25-090161 (baba-20250331.htm)",
+      "FY2024-2026 restated (China E-commerce Group + AIDC)": "0001193125-26-231755 (baba-20260331.htm)"
+    }
+  },
+  "alibaba_cik": "0001577552",
+  "pdd_cik": "0001737806"
+}
