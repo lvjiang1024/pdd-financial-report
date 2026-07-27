@@ -196,6 +196,18 @@ mark { background: var(--series-3); color: #0b0b0b; border-radius:3px; padding:0
 
 .footnote { font-size: 12px; color: var(--text-muted); margin-top: 30px; line-height:1.7; }
 .legend-note { font-size:11.5px; color:var(--text-muted); margin-top:6px;}
+
+/* valuation */
+.val-premise { background: var(--page-plane); border:1px solid var(--border); border-radius:10px; padding:14px; }
+.val-premise p { font-size:12.5px; color:var(--text-secondary); line-height:1.6; margin:8px 0 0; }
+.val-badge { font-size:12.5px; font-weight:700; padding:4px 10px; border-radius:999px; display:inline-block; }
+.val-badge.good { background: color-mix(in srgb, var(--good) 15%, transparent); color: var(--good); }
+.val-badge.warn { background: color-mix(in srgb, var(--series-3) 20%, transparent); color: var(--series-3); }
+.val-badge.bad  { background: color-mix(in srgb, var(--critical) 15%, transparent); color: var(--critical); }
+.val-verdict { margin-top:14px; font-size:13px; line-height:1.7; color:var(--text-primary);
+  background: var(--page-plane); border:1px solid var(--border); border-left:3px solid var(--series-1); border-radius:8px; padding:12px 14px; }
+#val-position { font-size:13.5px; line-height:1.8; color:var(--text-primary); }
+#val-position .big { font-size:15px; font-weight:700; }
 </style>
 </head>
 <body>
@@ -224,6 +236,7 @@ mark { background: var(--series-3); color: #0b0b0b; border-radius:3px; padding:0
   <button onclick="show('table', event)">📋 季度明细表</button>
   <button onclick="show('mgmt', event)">💬 管理层观点</button>
   <button onclick="show('compare', event)">🆚 PDD vs 阿里电商</button>
+  <button onclick="show('valuation', event)">🧮 老唐估值</button>
 </nav>
 
 <!-- ============ OVERVIEW ============ -->
@@ -337,6 +350,78 @@ mark { background: var(--series-3); color: #0b0b0b; border-radius:3px; padding:0
   </div>
 </section>
 
+<!-- ============ LAOTANG VALUATION ============ -->
+<section class="section" id="sec-valuation">
+  <div class="hint" style="margin-bottom:14px;">
+    采用「老唐（唐朝）估值法」：<b>合理估值 = 第三年预估净利 × 合理市盈率（无风险收益率倒数，低利率封顶 25×）</b>；
+    <b>理想买点 = 合理估值 ÷ 2</b>（五折，三年翻倍的安全边际）；<b>卖点 = min(当年净利×50, 合理估值×1.5)</b>。
+    利润口径为 GAAP 归母净利（人民币），每股/买卖点折算为美股 ADS（USD/CNY=7.2）。此法只适用于「看得懂、算得清」的优质公司——先过下方「三大前提」再看估值。
+  </div>
+
+  <div class="stat-row" id="val-stats"></div>
+
+  <div class="card">
+    <h3>第 0 步 · 老唐估值三大前提验证</h3>
+    <div class="hint">三条全为「是」才可用「净利≈自由现金流」直接套公式；任何一条存疑，估值仅作参考区间</div>
+    <div class="grid grid-3" style="margin-top:6px;">
+      <div class="val-premise">
+        <div class="val-badge good">① 利润是真的吗？ 通过</div>
+        <p>经营现金流长期 ≥ 净利（2024、2025 均为 1.08×，2026Q1 为 1.31×）；账上现金及短投约 4,361 亿元、几乎无有息负债，股东权益 4,149 亿元。利润有真金白银支撑。</p>
+      </div>
+      <div class="val-premise">
+        <div class="val-badge warn">② 利润能持续/可预测吗？ 存疑</div>
+        <p>这是 PDD 的<b>命门</b>：GAAP 净利 2024→2025 下滑 12%，2026Q1 再降；管理层主动进入「牺牲短期利润」的百亿生态投入期；Temu 面临美国 de-minimis 取消、关税与欧盟监管的地缘政治级不确定性；国内补贴战激烈。「三年后净利」难以可靠预测。</p>
+      </div>
+      <div class="val-premise">
+        <div class="val-badge good">③ 维持盈利要大量资本投入吗？ 通过</div>
+        <p>平台轻资产，资本开支极小，自由现金流 ≈（甚至 &gt;）净利润，是典型「印钞机」。</p>
+      </div>
+    </div>
+    <div class="val-verdict">
+      <b>适用性裁决：</b>前提 ①③ 干净通过，PDD 具备「极难亏钱」的资产负债表底子；但<b>前提 ② 不满足老唐「算得清」的硬标准</b>——按纪律本应放入「太难篮子」。下方估值<b>仅作参考区间</b>，务必搭配宽情景带阅读。
+    </div>
+  </div>
+
+  <div class="grid grid-2" style="margin-top:16px;">
+    <div class="card">
+      <h3>第 1–2 步 · 第三年（FY2028）归母净利预测</h3>
+      <div class="hint">基数为 GAAP 归母净利（亿元），从 2026 投资低谷出发，给三档可辩护假设</div>
+      <div class="table-scroll"><table id="val-proj-table"></table></div>
+      <div class="legend-note">历史实际：2023=600 / 2024=1124 / 2025=994 亿元（JSON 年度数据）。2026 处于投资低谷（Q1 年化后全年约 800–900 亿元）。</div>
+    </div>
+    <div class="card">
+      <h3>三点估值 vs 现价（USD/ADS）</h3>
+      <div class="hint">柱=理想买点/合理估值/卖点；红线=现价 $<span id="val-price-lbl"></span></div>
+      <div class="chart-box tall"><canvas id="chart-val"></canvas></div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:16px;">
+    <h3>第 3 步 · 三点估值表（核心交付物）</h3>
+    <div class="hint">合理 PE=25×（低利率封顶，10Y 国债≈2.1%）；摊薄 ADS≈14.82 亿股；USD/CNY=7.2</div>
+    <div class="table-scroll"><table id="val-table"></table></div>
+    <div class="val-verdict" style="border-color:var(--series-3);">
+      ⚠️ 25× 封顶是老唐给「高确定性印钞机」的锚。PDD 前提 ② 存疑，理性上应打折——若给 <b>15–18×</b>，中性合理估值/ADS 约降至 <b>$155–186</b>、买点约 <b>$77–93</b>。请以更保守口径作决策底线。
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:16px;">
+    <h3>第 4 步 · 现金流质量三尺子（利润含金量）</h3>
+    <div class="table-scroll"><table id="val-ruler-table"></table></div>
+    <div class="legend-note">补充锚点：净现金约 4,361 亿元（占市值约 51%）；剥离现金后 EV/2025 净利 ≈ 4×，trailing PE ≈ 8.5×。「水库」（合同负债/商户预存款）本数据集未提取，为已知数据缺口，需后续补齐。</div>
+  </div>
+
+  <div class="card" style="margin-top:16px;">
+    <h3>第 5 步 · 现价定位与一句话判定</h3>
+    <div id="val-position"></div>
+  </div>
+
+  <div class="footnote">
+    老唐估值法来源：唐朝《价值投资实战手册》《手把手教你读财报》等。本节把其规则工程化套用于 PDD，其中「第三年净利」为主观预测，
+    合理 PE、汇率、股本、净现金均随时点变化。<b>本分析不构成任何投资建议</b>，决策前请以公司最新定期报告自行复核（尤其补齐合同负债「水库」数据）。
+  </div>
+</section>
+
 <div class="footnote">
   数据来源：PDD Holdings Inc. 通过 SEC EDGAR（CIK 0001737806）提交的 6-K 表格所附季度业绩新闻稿（Exhibit 99.1），2018Q2–2026Q1 共 32 份。
   非公认会计准则（Non-GAAP）指标由公司自行定义并披露，剔除股权激励费用、部分投资公允价值变动及可转换债券摊销利息等影响，仅供参考，不能替代 GAAP 数据。
@@ -406,7 +491,8 @@ function show(sec, ev) {
     const fns = {
       overview: initOverview, revenue: initRevenue, profit: initProfit,
       cash: initCash, returns: initReturns, annual: initAnnual,
-      table: initTables, mgmt: initMgmt, compare: initCompare
+      table: initTables, mgmt: initMgmt, compare: initCompare,
+      valuation: initValuation
     };
     if (fns[sec]) fns[sec]();
   }
@@ -810,6 +896,99 @@ function initCompare() {
   });
   html += '</tbody>';
   document.getElementById('compare-table').innerHTML = html;
+}
+
+/* ============ LAOTANG VALUATION ============ */
+function initValuation() {
+  // ---- 假设输入区（判断项，更新只改这里） ----
+  const ADS   = 14.82;     // 摊薄 ADS 股数（亿股）
+  const FX    = 7.2;       // USD/CNY
+  const PE    = 25;        // 合理市盈率（低利率封顶）
+  const PRICE = 83.30;     // 现价（USD/ADS）
+  const MKTCAP_USD_B = 117.66; // 市值（十亿美元，来自行情）
+  const NETCASH_YI   = 4361;   // 净现金（亿元，2026Q1 现金及短投；有息负债≈0）
+  // 第三年（FY2028）GAAP 归母净利预测（亿元）
+  const SCN = [
+    { name:'乐观', ni:1450, note:'投资期结束、Temu 规模化转盈、国内变现率提升' },
+    { name:'中性', ni:1100, note:'投资常态化、国内温和恢复、Temu 勉强打平（约回到 2024 水平）' },
+    { name:'悲观', ni: 750, note:'Temu 被大幅收缩/减值、国内补贴战持续压制毛利' },
+  ];
+
+  const ni2025 = A[A.length-1].net_income/100; // 百万元→亿元
+  const mcYi   = MKTCAP_USD_B*10*FX;           // 市值→亿元
+  const peT    = mcYi/ni2025;                  // trailing PE
+  const netcashUSD_B = NETCASH_YI/FX/10;       // 净现金→十亿美元
+  const evUSD_B = MKTCAP_USD_B - netcashUSD_B;
+  const evNi    = evUSD_B / (ni2025/FX/10);
+
+  // 逐情景计算
+  SCN.forEach(s => {
+    s.fairYi   = s.ni*PE;                       // 合理估值（亿元, 总）
+    s.fairADS  = s.fairYi/ADS/FX;               // 合理估值/ADS（USD）
+    s.buyADS   = s.fairADS*0.5;                 // 理想买点/ADS
+    s.sellYi   = Math.min(s.ni*50, s.fairYi*1.5);
+    s.sellADS  = s.sellYi/ADS/FX;               // 卖点/ADS
+    s.disc     = PRICE/s.fairADS;               // 现价 / 合理估值
+  });
+  const neu = SCN[1], pes = SCN[2];
+
+  // ---- 顶部 stat tiles ----
+  document.getElementById('val-price-lbl').textContent = PRICE.toFixed(2);
+  document.getElementById('val-stats').innerHTML = [
+    ['现价 (USD/ADS)', '$'+PRICE.toFixed(2), '市值 $'+MKTCAP_USD_B+'B'],
+    ['滚动市盈率 (2025 GAAP)', peT.toFixed(1)+'×', '印钞机 · 极低'],
+    ['净现金 / 市值', (netcashUSD_B/MKTCAP_USD_B*100).toFixed(0)+'%', '约 $'+netcashUSD_B.toFixed(1)+'B'],
+    ['EV / 2025 净利', evNi.toFixed(1)+'×', '剥离现金后'],
+  ].map(([label,val,sub]) =>
+    `<div class="stat-tile"><div class="label">${label}</div><div class="value">${val}</div><div class="delta">${sub}</div></div>`
+  ).join('');
+
+  // ---- 预测表 ----
+  let pj = '<thead><tr><th>情景</th><th>FY2028 净利(亿元)</th><th>较 2025(994) 隐含 CAGR</th><th>关键假设</th></tr></thead><tbody>';
+  SCN.forEach(s => {
+    const cagr = (Math.pow(s.ni/ni2025, 1/3)-1)*100;
+    pj += `<tr><td>${s.name}</td><td>${fmtInt(s.ni)}</td><td>${pct(cagr)}</td><td style="text-align:left;white-space:normal;">${s.note}</td></tr>`;
+  });
+  document.getElementById('val-proj-table').innerHTML = pj + '</tbody>';
+
+  // ---- 三点估值表 ----
+  let vt = '<thead><tr><th>情景</th><th>FY2028净利(亿)</th><th>合理估值(亿元)</th><th>合理估值/ADS</th><th>理想买点/ADS(五折)</th><th>卖点/ADS</th><th>现价/合理估值</th></tr></thead><tbody>';
+  SCN.forEach(s => {
+    vt += `<tr><td>${s.name}</td><td>${fmtInt(s.ni)}</td><td>${fmtInt(s.fairYi)}</td>`
+        + `<td>$${fmtInt(s.fairADS)}</td><td>$${fmtInt(s.buyADS)}</td><td>$${fmtInt(s.sellADS)}</td>`
+        + `<td>${pct(s.disc*100)}</td></tr>`;
+  });
+  document.getElementById('val-table').innerHTML = vt + '</tbody>';
+
+  // ---- 三尺子表 ----
+  const q = Q[Q.length-1], qy = Q[Q.length-5];
+  const ocfNi24 = 1.08, ocfNi25 = 1.08, ocfNiQ = q.ocf/q.net_income;
+  document.getElementById('val-ruler-table').innerHTML =
+    '<thead><tr><th>尺子</th><th>读数</th><th>判定</th></tr></thead><tbody>'
+    + `<tr><td style="text-align:left;">尺子二 · 经营现金流 / 净利</td><td>2024=1.08 · 2025=1.08 · ${q.quarter}=${ocfNiQ.toFixed(2)}（长期≥1）</td><td>✅ 健康</td></tr>`
+    + `<tr><td style="text-align:left;">尺子一 · 收现 vs 营收</td><td>以 OCF 代理：与净利同步回落，非赊账放水</td><td>✅ 基本健康</td></tr>`
+    + `<tr><td style="text-align:left;">尺子三 · 水库（合同负债/预收）</td><td>本数据集未提取</td><td>— 数据缺口</td></tr>`
+    + '</tbody>';
+
+  // ---- 现价定位一句话 ----
+  document.getElementById('val-position').innerHTML =
+    `<p>现价 <b>$${PRICE.toFixed(2)}</b>，<b>低于中性买点 $${fmtInt(neu.buyADS)}（约 -${(100-PRICE/neu.buyADS*100).toFixed(0)}%）</b>，`
+    + `也低于悲观买点 $${fmtInt(pes.buyADS)}，甚至逼近「扣掉一半现金后 EV 仅约 ${evNi.toFixed(0)} 倍净利」的极端定价。纯从数字看：<span class="big" style="color:var(--good);">深度低估</span>。</p>`
+    + `<p><b>一句话清醒判定：</b>便宜是真便宜，但便宜的原因不是市场犯傻，而是市场对「前提 ②」投了不信任票——Temu 的地缘政治生死题＋国内补贴战＋主动降利润，让「三年后到底赚多少」算不清。`
+    + `老唐估值的价值恰在于此：<b>若利润能稳住，现价极难亏钱</b>；但它同样提醒你，<b>算不清的公司就该放进「太难篮子」</b>。看得懂 Temu 终局的人，这是深度低估；看不懂的人，再便宜也不属于你的菜。</p>`;
+
+  // ---- 图表：三点估值 vs 现价 ----
+  const s1=cssVar('--series-1'), s2=cssVar('--series-2'), s3=cssVar('--series-3'), sc=cssVar('--critical');
+  new Chart(document.getElementById('chart-val'), {
+    type:'bar',
+    data:{ labels: SCN.map(s=>s.name), datasets:[
+      barDs('理想买点(五折)', SCN.map(s=>Math.round(s.buyADS)), s2),
+      barDs('合理估值', SCN.map(s=>Math.round(s.fairADS)), s1),
+      barDs('卖点', SCN.map(s=>Math.round(s.sellADS)), s3),
+      lineDs('现价 $'+PRICE.toFixed(0), SCN.map(()=>PRICE), sc, {type:'line', borderDash:[6,4], pointRadius:0, borderWidth:2}),
+    ]},
+    options: baseOpts({ scales:{ x:{grid:{display:false},ticks:{color:cssVar('--text-muted')}}, y:{grid:{color:cssVar('--gridline')},ticks:{color:cssVar('--text-muted'),callback:v=>'$'+v}} } })
+  });
 }
 
 window.addEventListener('load', () => { initOverview(); });
