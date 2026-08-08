@@ -1,0 +1,28 @@
+{
+  "_readme": "PDD cash flow quality metrics, RMB million. See pipeline/README.md '现金流质量分析' section for sourcing notes and how to extend this with a new year.",
+  "rows": [
+    { "y": 2018, "rev": 13120.0,  "ni": -10297.6, "ocf": 7767.9,   "capex": 27.3,   "cash": 14160.3,  "payable": 17275.9,  "debt": 0.0 },
+    { "y": 2019, "rev": 30141.9,  "ni": -6967.6,  "ocf": 14821.0,  "capex": 27.4,   "cash": 5768.2,   "payable": 29926.5,  "debt": 5206.7 },
+    { "y": 2020, "rev": 59491.9,  "ni": -7179.7,  "ocf": 28196.6,  "capex": 43.0,   "cash": 22421.2,  "payable": 53834.0,  "debt": 14432.8 },
+    { "y": 2021, "rev": 93949.9,  "ni": 7768.7,   "ocf": 28783.0,  "capex": 3287.2, "cash": 6426.7,   "payable": 62509.7,  "debt": 11788.9 },
+    { "y": 2022, "rev": 130557.6, "ni": 31538.1,  "ocf": 48507.9,  "capex": 635.7,  "cash": 34326.2,  "payable": 63316.7,  "debt": 15461.5 },
+    { "y": 2023, "rev": 247639.2, "ni": 60026.5,  "ocf": 94162.5,  "capex": 583.9,  "cash": 59794.5,  "payable": 74997.3,  "debt": 5880.1 },
+    { "y": 2024, "rev": 393836.1, "ni": 112434.5, "ocf": 121929.3, "capex": 967.1,  "cash": 57768.1,  "payable": 91655.9,  "debt": 5309.6 },
+    { "y": 2025, "rev": 431845.7, "ni": 99364.5,  "ocf": 106938.7, "capex": 1145.1, "cash": 108900.6, "payable": 107407.2, "debt": 0.0 }
+  ],
+  "field_definitions": {
+    "rev": "Total revenue (GAAP), RMB million, from annual_raw.json",
+    "ni": "Net income attributable to ordinary shareholders (GAAP), RMB million, from annual_raw.json",
+    "ocf": "Net cash generated from operating activities, RMB million. FY2018-2021 from 20-F 'Summary Consolidated Cash Flow Data' table (not in 6-K press releases); FY2022+ from annual_raw.json (sums to 20-F confirmed values)",
+    "capex": "Purchase of property, equipment and software (and intangible assets), RMB million, from 20-F full cash flow statement. Never disclosed in 6-K quarterly releases.",
+    "cash": "Cash and cash equivalents at year end (narrow measure, excludes restricted cash and short-term investments), RMB million, from 20-F balance sheet.",
+    "payable": "Payable to merchants at year end, RMB million, from 20-F/6-K balance sheet. This is money collected from buyers not yet settled to merchants -- PDD's marketplace 'float'.",
+    "debt": "Convertible bonds balance (current + non-current) at year end, RMB million. PDD's only interest-bearing debt; no bank borrowings. Issued ~2019, fully repaid by end of 2025."
+  },
+  "20f_accessions_used": {
+    "FY2018-2020": "0001104659-21-058237 (pdd-20201231x20f.htm)",
+    "FY2020-2022": "0001104659-23-049927 (pdd-20221231x20f.htm)",
+    "FY2023-2025": "0001104659-26-050727 (pdd-20251231x20f.htm)"
+  },
+  "pdd_cik": "0001737806"
+}

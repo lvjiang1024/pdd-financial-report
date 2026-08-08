@@ -224,6 +224,7 @@ mark { background: var(--series-3); color: #0b0b0b; border-radius:3px; padding:0
   <button onclick="show('table', event)">📋 季度明细表</button>
   <button onclick="show('mgmt', event)">💬 管理层观点</button>
   <button onclick="show('compare', event)">🆚 PDD vs 阿里电商</button>
+  <button onclick="show('cfq', event)">🩺 现金流质量</button>
 </nav>
 
 <!-- ============ OVERVIEW ============ -->
@@ -337,6 +338,40 @@ mark { background: var(--series-3); color: #0b0b0b; border-radius:3px; padding:0
   </div>
 </section>
 
+<!-- ============ CASH FLOW QUALITY ============ -->
+<section class="section" id="sec-cfq">
+  <div class="hint" style="margin-bottom:14px;">
+    PDD 采用美国会计准则（US GAAP），季度/年度财报不像 A 股年报那样单独披露"销售商品、提供劳务收到的现金"，因此传统"收现比"指标无法直接复用；
+    以下改用等价可得的指标：净现比（经营现金流 / 归母净利润，衡量账面利润有没有变成真金白银）、自由现金流、有息负债（可转换债券余额）、
+    以及 PDD 作为撮合平台特有的"应付商家"浮存金对经营现金流的贡献占比。金额单位：人民币百万元。
+  </div>
+  <div class="stat-row" id="cfq-stats"></div>
+  <div class="grid grid-2">
+    <div class="card"><h3>净现比：经营现金流 vs 归母净利润</h3><div class="hint">人民币百万元；净现比 = OCF / 净利润，仅在净利润为正的年份计算</div><div class="chart-box"><canvas id="chart-cfq-ni"></canvas></div></div>
+    <div class="card"><h3>经营现金流 → 自由现金流</h3><div class="hint">人民币百万元；FCF = OCF − 资本开支</div><div class="chart-box"><canvas id="chart-cfq-fcf"></canvas></div></div>
+  </div>
+  <div class="grid grid-2">
+    <div class="card">
+      <h3>"应付商家"浮存金对经营现金流的贡献</h3>
+      <div class="hint">人民币百万元；PDD 作为撮合平台，代收货款在结算给商家前会计入"应付商家"负债，其年度增量会计入经营现金流——增量占比越高，说明当年OCF越多来自平台规模扩张带来的浮存金，而非纯利润转化</div>
+      <div class="chart-box"><canvas id="chart-cfq-float"></canvas></div>
+    </div>
+    <div class="card">
+      <h3>有息负债与现金储备</h3>
+      <div class="hint">人民币百万元；有息负债为可转换债券余额（PDD 未使用银行借款）；现金为期末"现金及现金等价物"（不含短期投资）</div>
+      <div class="chart-box"><canvas id="chart-cfq-debt"></canvas></div>
+    </div>
+  </div>
+  <div class="card" style="margin-top:16px;">
+    <h3>现金流质量数据明细</h3>
+    <div class="table-scroll"><table id="cfq-table"></table></div>
+  </div>
+  <div class="legend-note">
+    数据来源：PDD SEC 20-F 年报完整现金流量表及资产负债表附注（6-K 季度公告未披露资本开支及可转换债券以外的负债明细，故用年报补齐）。
+    净现比、浮存金占比等为本报告基于公开数据计算的衍生指标，不是公司官方披露口径。
+  </div>
+</section>
+
 <div class="footnote">
   数据来源：PDD Holdings Inc. 通过 SEC EDGAR（CIK 0001737806）提交的 6-K 表格所附季度业绩新闻稿（Exhibit 99.1），2018Q2–2026Q1 共 32 份。
   非公认会计准则（Non-GAAP）指标由公司自行定义并披露，剔除股权激励费用、部分投资公允价值变动及可转换债券摊销利息等影响，仅供参考，不能替代 GAAP 数据。
@@ -360,6 +395,30 @@ const COMPARE = [
   { pddYear: '2024', babaFY: 'FY2025', pddRev: 393.84, pddOp: 108.42, pddFcf: 120.96, babaRev: 640.68, babaEbita: 178.09, babaFcf: 73.87 },
   { pddYear: '2025', babaFY: 'FY2026', pddRev: 431.85, pddOp: 94.62,  pddFcf: 105.79, babaRev: 698.39, babaEbita: 105.46, babaFcf: -46.61 },
 ];
+
+// PDD cash flow quality, RMB million. Source: SEC 20-F full cash flow statements + balance sheet notes
+// (not disclosed in 6-K quarterly press releases). See pipeline/README.md for accession numbers used.
+const CFQ = [
+  { y: 2018, rev: 13120.0,  ni: -10297.6, ocf: 7767.9,   capex: 27.3,   cash: 14160.3,  payable: 17275.9,  debt: 0.0 },
+  { y: 2019, rev: 30141.9,  ni: -6967.6,  ocf: 14821.0,  capex: 27.4,   cash: 5768.2,   payable: 29926.5,  debt: 5206.7 },
+  { y: 2020, rev: 59491.9,  ni: -7179.7,  ocf: 28196.6,  capex: 43.0,   cash: 22421.2,  payable: 53834.0,  debt: 14432.8 },
+  { y: 2021, rev: 93949.9,  ni: 7768.7,   ocf: 28783.0,  capex: 3287.2, cash: 6426.7,   payable: 62509.7,  debt: 11788.9 },
+  { y: 2022, rev: 130557.6, ni: 31538.1,  ocf: 48507.9,  capex: 635.7,  cash: 34326.2,  payable: 63316.7,  debt: 15461.5 },
+  { y: 2023, rev: 247639.2, ni: 60026.5,  ocf: 94162.5,  capex: 583.9,  cash: 59794.5,  payable: 74997.3,  debt: 5880.1 },
+  { y: 2024, rev: 393836.1, ni: 112434.5, ocf: 121929.3, capex: 967.1,  cash: 57768.1,  payable: 91655.9,  debt: 5309.6 },
+  { y: 2025, rev: 431845.7, ni: 99364.5,  ocf: 106938.7, capex: 1145.1, cash: 108900.6, payable: 107407.2, debt: 0.0 },
+].map((r, i, arr) => {
+  r.fcf = +(r.ocf - r.capex).toFixed(1);
+  r.netCashRatio = r.ni > 0 ? +(r.ocf / r.ni * 100).toFixed(1) : null;
+  if (i > 0) {
+    r.dPayable = +(r.payable - arr[i-1].payable).toFixed(1);
+    r.floatRatio = +(r.dPayable / r.ocf * 100).toFixed(1);
+  } else {
+    r.dPayable = null;
+    r.floatRatio = null;
+  }
+  return r;
+});
 
 function fmt(v, d=1) {
   if (v === null || v === undefined || isNaN(v)) return '—';
@@ -406,7 +465,7 @@ function show(sec, ev) {
     const fns = {
       overview: initOverview, revenue: initRevenue, profit: initProfit,
       cash: initCash, returns: initReturns, annual: initAnnual,
-      table: initTables, mgmt: initMgmt, compare: initCompare
+      table: initTables, mgmt: initMgmt, compare: initCompare, cfq: initCFQ
     };
     if (fns[sec]) fns[sec]();
   }
@@ -810,6 +869,83 @@ function initCompare() {
   });
   html += '</tbody>';
   document.getElementById('compare-table').innerHTML = html;
+}
+
+/* ============ CASH FLOW QUALITY ============ */
+function initCFQ() {
+  const s1 = cssVar('--series-1'), s2 = cssVar('--series-2'), s3 = cssVar('--series-3'), s6 = cssVar('--series-6'), s5 = cssVar('--series-5');
+  const years = CFQ.map(r => r.y);
+
+  const latest = CFQ[CFQ.length - 1];
+  const statHtml = [
+    ['最新净现比(OCF/净利润)', latest.netCashRatio != null ? pct(latest.netCashRatio) : '—'],
+    ['最新年度自由现金流', fmtInt(latest.fcf) + ' RMB M'],
+    ['浮存金对OCF贡献占比', pct(latest.floatRatio)],
+    ['有息负债余额(可转债)', fmtInt(latest.debt) + ' RMB M'],
+  ].map(([label, val]) => `<div class="stat-tile"><div class="label">${label} (${latest.y})</div><div class="value">${val}</div></div>`).join('');
+  document.getElementById('cfq-stats').innerHTML = statHtml;
+
+  new Chart(document.getElementById('chart-cfq-ni'), {
+    type: 'bar',
+    data: { labels: years, datasets: [
+      barDs('归母净利润(GAAP)', CFQ.map(r=>r.ni), s6),
+      barDs('经营活动现金流(OCF)', CFQ.map(r=>r.ocf), s1),
+    ]},
+    options: baseOpts()
+  });
+
+  new Chart(document.getElementById('chart-cfq-fcf'), {
+    type: 'bar',
+    data: { labels: years, datasets: [
+      barDs('经营现金流(OCF)', CFQ.map(r=>r.ocf), s1),
+      barDs('资本开支(Capex)', CFQ.map(r=>-r.capex), s6),
+      lineDs('自由现金流(FCF)', CFQ.map(r=>r.fcf), s3, {type:'line'}),
+    ]},
+    options: baseOpts({ scales: { x:{ stacked:true, grid:{display:false}, ticks:{color:cssVar('--text-muted'),font:{size:10}} }, y:{ stacked:true, grid:{color:cssVar('--gridline')}, ticks:{color:cssVar('--text-muted')} } } })
+  });
+
+  new Chart(document.getElementById('chart-cfq-float'), {
+    type: 'bar',
+    data: { labels: years, datasets: [
+      barDs('应付商家年度增量(浮存金)', CFQ.map(r=>r.dPayable), s5),
+      lineDs('浮存金占OCF比重(%)', CFQ.map(r=>r.floatRatio), s6, {type:'line', yAxisID:'y1'}),
+    ]},
+    options: baseOpts({ scales: {
+      x: { grid:{display:false}, ticks:{color:cssVar('--text-muted'),font:{size:10}} },
+      y: { grid:{color:cssVar('--gridline')}, ticks:{color:cssVar('--text-muted')} },
+      y1: { position:'right', min:0, max:100, grid:{drawOnChartArea:false}, ticks:{color:cssVar('--text-muted'), callback:v=>v+'%'} },
+    }})
+  });
+
+  new Chart(document.getElementById('chart-cfq-debt'), {
+    type: 'bar',
+    data: { labels: years, datasets: [
+      barDs('现金及现金等价物(期末)', CFQ.map(r=>r.cash), s2),
+      barDs('有息负债(可转债余额)', CFQ.map(r=>r.debt), s6),
+    ]},
+    options: baseOpts()
+  });
+
+  const cols = [
+    ['年度', r=>r.y],
+    ['营业收入', r=>fmtInt(r.rev)],
+    ['归母净利润(GAAP)', r=>fmtInt(r.ni)],
+    ['经营现金流(OCF)', r=>fmtInt(r.ocf)],
+    ['净现比', r=>r.netCashRatio!=null?pct(r.netCashRatio):'—'],
+    ['资本开支', r=>fmtInt(r.capex)],
+    ['自由现金流(FCF)', r=>fmtInt(r.fcf)],
+    ['应付商家(期末)', r=>fmtInt(r.payable)],
+    ['应付商家增量', r=>r.dPayable!=null?fmtInt(r.dPayable):'—'],
+    ['浮存金占OCF比重', r=>r.floatRatio!=null?pct(r.floatRatio):'—'],
+    ['现金及等价物(期末)', r=>fmtInt(r.cash)],
+    ['有息负债(可转债)', r=>fmtInt(r.debt)],
+  ];
+  let cfqHtml = '<thead><tr>' + cols.map(c=>`<th>${c[0]}</th>`).join('') + '</tr></thead><tbody>';
+  CFQ.forEach(r => {
+    cfqHtml += '<tr>' + cols.map(c=>`<td>${c[1](r)}</td>`).join('') + '</tr>';
+  });
+  cfqHtml += '</tbody>';
+  document.getElementById('cfq-table').innerHTML = cfqHtml;
 }
 
 window.addEventListener('load', () => { initOverview(); });
